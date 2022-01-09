@@ -148,19 +148,19 @@ const CandyMachine = ({ walletAddress }) => {
     // Create a program that you can call
     const program = new Program(idl, candyMachineProgram, provider);
   
-    const state = await program.account.candyMachine.fetch(
+    const candyMachine = await program.account.candyMachine.fetch(
       process.env.REACT_APP_CANDY_MACHINE_ID
     );
-    const itemsAvailable = state.data.itemsAvailable.toNumber();
-    const itemsRedeemed = state.itemsRedeemed.toNumber();
+    const itemsAvailable = candyMachine.data.itemsAvailable.toNumber();
+    const itemsRedeemed = candyMachine.itemsRedeemed.toNumber();
     const itemsRemaining = itemsAvailable - itemsRedeemed;
-    const goLiveData = state.data.goLiveDate.toNumber();
+    const goLiveData = candyMachine.data.goLiveDate.toNumber();
 
     const presale =
-      state.data.whitelistMintSettings &&
-      state.data.whitelistMintSettings.presale &&
-      (!state.data.goLiveDate ||
-        state.data.goLiveDate.toNumber() > new Date().getTime() / 1000);
+      candyMachine.data.whitelistMintSettings &&
+      candyMachine.data.whitelistMintSettings.presale &&
+      (!candyMachine.data.goLiveDate ||
+        candyMachine.data.goLiveDate.toNumber() > new Date().getTime() / 1000);
     
     // We will be using this later in our UI so let's generate this now
     const goLiveDateTimeString = `${new Date(
@@ -198,21 +198,21 @@ const CandyMachine = ({ walletAddress }) => {
         isSoldOut: itemsRemaining === 0,
         isActive:
           (presale ||
-            state.data.goLiveDate.toNumber() < new Date().getTime() / 1000) &&
-          (state.endSettings
-            ? state.endSettings.endSettingType.date
-              ? state.endSettings.number.toNumber() > new Date().getTime() / 1000
-              : itemsRedeemed < state.endSettings.number.toNumber()
+            candyMachine.data.goLiveDate.toNumber() < new Date().getTime() / 1000) &&
+          (candyMachine.endSettings
+            ? candyMachine.endSettings.endSettingType.date
+              ? candyMachine.endSettings.number.toNumber() > new Date().getTime() / 1000
+              : itemsRedeemed < candyMachine.endSettings.number.toNumber()
             : true),
         isPresale: presale,
-        goLiveDate: state.data.goLiveDate,
-        treasury: state.wallet,
-        tokenMint: state.tokenMint,
-        gatekeeper: state.data.gatekeeper,
-        endSettings: state.data.endSettings,
-        whitelistMintSettings: state.data.whitelistMintSettings,
-        hiddenSettings: state.data.hiddenSettings,
-        price: state.data.price,
+        goLiveDate: candyMachine.data.goLiveDate,
+        treasury: candyMachine.wallet,
+        tokenMint: candyMachine.tokenMint,
+        gatekeeper: candyMachine.data.gatekeeper,
+        endSettings: candyMachine.data.endSettings,
+        whitelistMintSettings: candyMachine.data.whitelistMintSettings,
+        hiddenSettings: candyMachine.data.hiddenSettings,
+        price: candyMachine.data.price,
       },
     };
   };
