@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, Provider, web3 } from '@project-serum/anchor';
 import { MintLayout, TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
@@ -21,27 +21,9 @@ const opts = {
 };
 
 const CandyMachine = ({ walletAddress }) => {
-  const [machineStats, setMachineStats] = useState(null);
-  const [candyMachine, setCandyMachine] = useState();
+  const [candyMachine, setCandyMachine] = useState(null);
   const [isMinting, setIsMinting] = useState(false);
   
-  const wallet = useMemo(() => {
-    if(
-      !walletAddress ||
-      !walletAddress.publicKey ||
-      !walletAddress.signAllTransactions ||
-      !walletAddress.signTransaction
-    ){
-      return;
-    }
-
-    return {
-      publicKey: walletAddress.publicKey,
-      signAllTransactions: walletAddress.signAllTransactions,
-      signTransaction: walletAddress.signTransaction,
-    }
-  }, [walletAddress]);
-
   const getCandyMachineCreator = async (candyMachine) => {
     const candyMachineID = new PublicKey(candyMachine);
     return await web3.PublicKey.findProgramAddress(
@@ -126,7 +108,7 @@ const CandyMachine = ({ walletAddress }) => {
   const renderDropTimer = () => {
     // Get the current date and dropDate in a JavaScript Date object
     const currentDate = new Date();
-    const dropDate = new Date(machineStats.goLiveData * 1000);
+    const dropDate = new Date(candyMachine.state.goLiveData * 1000);
 
     // If currentDate is before dropDate, render our Countdown component
     if (currentDate < dropDate) {
@@ -136,7 +118,7 @@ const CandyMachine = ({ walletAddress }) => {
     }
     
     // Else let's just return the current drop date
-    return <p>{`Drop Date: ${machineStats.goLiveDateTimeString}`}</p>;
+    return <p>{`Drop Date: ${candyMachine.state.goLiveDateTimeString}`}</p>;
   };
 
   const getCandyMachineState = async () => {
@@ -168,16 +150,6 @@ const CandyMachine = ({ walletAddress }) => {
     ).toLocaleDateString()} @ ${new Date(
       goLiveData * 1000
     ).toLocaleTimeString()}`;
-
-    // Add this data to your state to render
-    setMachineStats({
-      itemsAvailable,
-      itemsRedeemed,
-      itemsRemaining,
-      goLiveData,
-      goLiveDateTimeString,
-      presale,
-    });
     
     console.log({
       itemsAvailable,
@@ -187,14 +159,17 @@ const CandyMachine = ({ walletAddress }) => {
       goLiveDateTimeString,
       presale,
     });
-
-    return {
+    
+    // Add this data to your state to render
+    setCandyMachine({
       id: process.env.REACT_APP_CANDY_MACHINE_ID,
       program,
       state: {
         itemsAvailable,
         itemsRedeemed,
         itemsRemaining,
+        goLiveData,
+        goLiveDateTimeString,
         isSoldOut: itemsRemaining === 0,
         isActive:
           (presale ||
@@ -214,25 +189,8 @@ const CandyMachine = ({ walletAddress }) => {
         hiddenSettings: candyMachine.data.hiddenSettings,
         price: candyMachine.data.price,
       },
-    };
+    });
   };
-
-  const refreshCandyMachineState = useCallback(async () => {
-    if (!wallet) {
-      return;
-    }
-
-    if (process.env.REACT_APP_CANDY_MACHINE_ID){
-      try{
-        const cndy = await getCandyMachineState();
-        setCandyMachine(cndy);
-      }
-      catch(e){
-        console.log('There was a problem fetching candy machine state', e);
-        console.log(e);
-      }
-    }
-  }, [wallet]);
 
   const mintToken = async () => {
     setIsMinting(true);
@@ -449,16 +407,16 @@ const CandyMachine = ({ walletAddress }) => {
   };
   
   useEffect(() => {
-    refreshCandyMachineState();
-  }, [wallet, refreshCandyMachineState]);
+    getCandyMachineState();
+  }, []);
 
   return (
-    machineStats && (
+    candyMachine && (
       <div className="machine-container">
         {renderDropTimer()}
-        <p>{`Items Minted: ${machineStats.itemsRedeemed} / ${machineStats.itemsAvailable}`}</p>
+        <p>{`Items Minted: ${candyMachine.state.itemsRedeemed} / ${candyMachine.state.itemsAvailable}`}</p>
         {/* Check to see if these properties are equal! */}
-        {machineStats.itemsRedeemed === machineStats.itemsAvailable ? (
+        {candyMachine.state.itemsRedeemed === candyMachine.state.itemsAvailable ? (
           <p className="sub-text">Sold Out 🙊</p>
         ) : (
           <button
