@@ -3,7 +3,6 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, Provider, web3 } from '@project-serum/anchor';
 import { MintLayout, TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
 import { sendTransactions } from './connection';
-import * as anchor from '@project-serum/anchor';
 import './CandyMachine.css';
 import CountdownTimer from '../CountdownTimer';
 import {
@@ -42,7 +41,6 @@ const CandyMachine = ({ walletAddress }) => {
       signTransaction: walletAddress.signTransaction,
     }
   }, [walletAddress]);
-
 
   const getCandyMachineCreator = async (candyMachine) => {
     const candyMachineID = new PublicKey(candyMachine);
@@ -238,7 +236,7 @@ const CandyMachine = ({ walletAddress }) => {
 
   const mintToken = async () => {
     setIsMinting(true);
-    const mint = anchor.web3.Keypair.generate();
+    const mint = web3.Keypair.generate();
 
     const userTokenAccountAddress = (
       await getAtaForMint(mint.publicKey, walletAddress.publicKey)
@@ -253,7 +251,7 @@ const CandyMachine = ({ walletAddress }) => {
     const signers = [mint];
     const cleanupInstructions = [];
     const instructions = [
-      anchor.web3.SystemProgram.createAccount({
+      web3.SystemProgram.createAccount({
         fromPubkey: walletAddress.publicKey,
         newAccountPubkey: mint.publicKey,
         space: MintLayout.span,
@@ -315,7 +313,7 @@ const CandyMachine = ({ walletAddress }) => {
       }
     }
     if (candyMachine.state.whitelistMintSettings) {
-      const mint = new anchor.web3.PublicKey(
+      const mint = new web3.PublicKey(
         candyMachine.state.whitelistMintSettings.mint,
       );
   
@@ -327,7 +325,7 @@ const CandyMachine = ({ walletAddress }) => {
       });
   
       if (candyMachine.state.whitelistMintSettings.mode.burnEveryTime) {
-        const whitelistBurnAuthority = anchor.web3.Keypair.generate();
+        const whitelistBurnAuthority = web3.Keypair.generate();
   
         remainingAccounts.push({
           pubkey: mint,
@@ -368,7 +366,7 @@ const CandyMachine = ({ walletAddress }) => {
     }
   
     if (candyMachine.state.tokenMint) {
-      const transferAuthority = anchor.web3.Keypair.generate();
+      const transferAuthority = web3.Keypair.generate();
   
       signers.push(transferAuthority);
       remainingAccounts.push({
@@ -423,10 +421,10 @@ const CandyMachine = ({ walletAddress }) => {
           tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-          clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
-          recentBlockhashes: anchor.web3.SYSVAR_RECENT_BLOCKHASHES_PUBKEY,
-          instructionSysvarAccount: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+          clock: web3.SYSVAR_CLOCK_PUBKEY,
+          recentBlockhashes: web3.SYSVAR_RECENT_BLOCKHASHES_PUBKEY,
+          instructionSysvarAccount: web3.SYSVAR_INSTRUCTIONS_PUBKEY,
         },
         remainingAccounts:
           remainingAccounts.length > 0 ? remainingAccounts : undefined,
